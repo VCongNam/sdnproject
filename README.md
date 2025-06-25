@@ -1,94 +1,224 @@
-Event Planner Application
-Welcome to the Event Planner application! This project is a full-stack web application designed to help users organize and manage various events efficiently. Whether it's a birthday party, a corporate meeting, or a wedding, this application provides the tools to plan and track all necessary details.
+# Hệ thống Quản lý Sự kiện - SDN Project
 
-✨ Features
-User Authentication: Secure user registration and login.
+Một ứng dụng web đơn giản để quản lý sự kiện và lịch trình, được xây dựng với MongoDB, Express.js và React.
 
-Event Creation & Management: Users can create, view, update, and delete their events.
+## Tính năng
 
-Detailed Event Information: Add event name, date, time, location, description, and guest lists.
+### Quản lý Sự kiện
+- ✅ Thêm, sửa, xóa sự kiện
+- ✅ Tìm kiếm sự kiện theo tên và mô tả
+- ✅ Lọc sự kiện theo trạng thái (Đang diễn ra, Đã hủy, Đã hoàn thành)
+- ✅ Hiển thị thông tin chi tiết: tiêu đề, mô tả, ngày bắt đầu/kết thúc, địa điểm, danh mục
 
-Guest Management: Track attendees, RSVPs, and guest details.
+### Quản lý Lịch trình
+- ✅ Thêm, sửa, xóa lịch trình cho từng sự kiện
+- ✅ Hiển thị lịch trình theo timeline với thời gian
+- ✅ Lọc lịch trình theo loại (Phiên thảo luận, Nghỉ giải lao, Hội thảo, Thuyết trình, Khác)
+- ✅ Sắp xếp lịch trình theo thời gian và thứ tự
 
-Responsive Design: Optimized for various screen sizes, from mobile to desktop.
+## Cấu trúc Database
 
-🚀 Technologies Used
-This project leverages a modern MERN (MongoDB, Express.js, React, Node.js) stack to deliver a robust and scalable solution.
+### Collections MongoDB
 
-Frontend
-React: A JavaScript library for building user interfaces.
+#### 1. Events
+```javascript
+{
+  _id: ObjectId,
+  title: String,           // Tên sự kiện
+  description: String,     // Mô tả sự kiện
+  startDate: Date,         // Ngày bắt đầu
+  endDate: Date,          // Ngày kết thúc
+  location: String,       // Địa điểm
+  status: String,         // Trạng thái (active, cancelled, completed)
+  category: String,       // Danh mục sự kiện
+  createdBy: ObjectId,    // Reference đến User
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-React Router: For declarative routing in React applications.
+#### 2. Schedules
+```javascript
+{
+  _id: ObjectId,
+  eventId: ObjectId,      // Reference đến Event
+  title: String,          // Tên lịch trình
+  description: String,    // Mô tả lịch trình
+  startTime: Date,        // Thời gian bắt đầu
+  endTime: Date,          // Thời gian kết thúc
+  location: String,       // Địa điểm
+  type: String,           // Loại lịch trình (session, break, workshop, presentation, other)
+  order: Number,          // Thứ tự trong lịch trình
+  createdBy: ObjectId,    // Reference đến User
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-Tailwind CSS: A utility-first CSS framework for rapid UI development.
+#### 3. Users
+```javascript
+{
+  _id: ObjectId,
+  username: String,       // Tên đăng nhập
+  email: String,          // Email
+  password: String,       // Mật khẩu (hashed)
+  fullName: String,       // Họ tên đầy đủ
+  role: String,           // Vai trò (admin, user)
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-Axios: A promise-based HTTP client for making API requests.
+## Cài đặt và Chạy
 
-Backend
-Node.js: A JavaScript runtime built on Chrome's V8 JavaScript engine.
+### Yêu cầu hệ thống
+- Node.js (v14 trở lên)
+- MongoDB (v4.4 trở lên)
+- npm hoặc yarn
 
-Express.js: A fast, unopinionated, minimalist web framework for Node.js.
+### Bước 1: Clone repository
+```bash
+git clone <repository-url>
+cd sdnproject
+```
 
-MongoDB: A NoSQL database for storing event and user data.
+### Bước 2: Cài đặt dependencies
 
-Mongoose: An ODM (Object Data Modeling) library for MongoDB and Node.js.
-
-JWT (JSON Web Tokens): For secure user authentication.
-
-Bcrypt.js: For password hashing.
-
-CORS: Middleware to enable Cross-Origin Resource Sharing.
-
-⚙️ Setup and Installation
-Follow these steps to get the project up and running on your local machine.
-
-Prerequisites
-Node.js (LTS version recommended)
-
-npm (comes with Node.js) or Yarn
-
-MongoDB installed and running, or a MongoDB Atlas account
-
-1. Clone the repository
-git clone <your-repository-url>
-cd sdnproject # Or whatever your project's root folder is named
-
-2. Backend Setup
-Navigate to the backend directory, install dependencies, and configure your environment.
-
+#### Backend
+```bash
 cd backend
-npm install # Or yarn install
+npm install
+```
 
-Create a .env file in the backend directory with the following variables:
+#### Frontend
+```bash
+cd frontend
+npm install
+```
 
-PORT=5000
-MONGO_URI=your_mongodb_connection_string # e.g., mongodb://localhost:27017/eventplanner_db or your Atlas URI
-JWT_SECRET=your_jwt_secret_key # Use a strong, random string
+### Bước 3: Cấu hình MongoDB
+Đảm bảo MongoDB đang chạy trên máy local hoặc cập nhật connection string trong file `.env`:
 
-3. Frontend Setup
-Navigate to the frontend directory, install dependencies, and configure your environment.
+```bash
+# Backend/.env
+MONGODB_URI=mongodb://localhost:27017/sdn_event_management
+JWT_SECRET=your_jwt_secret_key_here
+PORT=9999
+```
 
-cd ../frontend # Go back to root and then into frontend
-npm install # Or yarn install
+### Bước 4: Import dữ liệu mẫu
+```bash
+# Import events
+mongoimport --db sdn_event_management --collection events --file events.json --jsonArray
 
-Create a .env file in the frontend directory with the following variables:
+# Import schedules
+mongoimport --db sdn_event_management --collection schedules --file schedules.json --jsonArray
+```
 
-REACT_APP_API_BASE_URL=http://localhost:5000/api # Or your backend API URL
+### Bước 5: Chạy ứng dụng
 
-▶️ How to Run the Application
-1. Start the Backend Server
-From the backend directory:
-
-npm start # Or node server.js (if your start script is not defined)
-
-The backend server will run on http://localhost:5000 (or your specified PORT).
-
-2. Start the Frontend Development Server
-From the frontend directory:
-
+#### Terminal 1 - Backend
+```bash
+cd backend
 npm start
+```
+Backend sẽ chạy trên http://localhost:9999
 
-The frontend application will open in your browser at http://localhost:3000 (or a similar port).
+#### Terminal 2 - Frontend
+```bash
+cd frontend
+npm start
+```
+Frontend sẽ chạy trên http://localhost:3000
 
-📄 License
-This project is open source and available under the MIT License. (You can change this to your preferred license).
+## API Endpoints
+
+### Events
+- `GET /api/events` - Lấy danh sách sự kiện
+- `GET /api/events/:id` - Lấy chi tiết sự kiện
+- `POST /api/events` - Tạo sự kiện mới
+- `PUT /api/events/:id` - Cập nhật sự kiện
+- `DELETE /api/events/:id` - Xóa sự kiện
+
+### Schedules
+- `GET /api/schedules` - Lấy danh sách lịch trình
+- `GET /api/schedules/event/:eventId` - Lấy lịch trình theo sự kiện
+- `GET /api/schedules/:id` - Lấy chi tiết lịch trình
+- `POST /api/schedules` - Tạo lịch trình mới
+- `PUT /api/schedules/:id` - Cập nhật lịch trình
+- `DELETE /api/schedules/:id` - Xóa lịch trình
+
+## Công nghệ sử dụng
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM cho MongoDB
+- **bcryptjs** - Mã hóa mật khẩu
+- **jsonwebtoken** - JWT authentication
+- **cors** - Cross-origin resource sharing
+
+### Frontend
+- **React** - UI library
+- **Axios** - HTTP client
+- **date-fns** - Date utility library
+- **react-datepicker** - Date picker component
+- **lucide-react** - Icon library
+
+## Cấu trúc thư mục
+
+```
+sdnproject/
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   │   └── middleware/
+│   │   └── auth.js
+│   │   └── models/
+│   │   └── routes/
+│   │   └── server.js
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── EventList.js
+│   │   │   ├── EventList.css
+│   │   │   ├── EventForm.js
+│   │   │   ├── EventForm.css
+│   │   │   ├── ScheduleList.js
+│   │   │   ├── ScheduleList.css
+│   │   │   ├── ScheduleForm.js
+│   │   │   └── ScheduleForm.css
+│   │   ├── App.js
+│   │   ├── App.css
+│   │   └── index.js
+│   └── package.json
+├── events.json
+├── schedules.json
+├── import_guide.md
+└── README.md
+```
+
+## Tính năng bổ sung có thể phát triển
+
+- [ ] Hệ thống đăng nhập/đăng ký
+- [ ] Phân quyền người dùng
+- [ ] Upload hình ảnh cho sự kiện
+- [ ] Gửi email thông báo
+- [ ] Export lịch trình ra PDF/Excel
+- [ ] Calendar view
+- [ ] Push notifications
+- [ ] Mobile app
+
+## Đóng góp
+
+1. Fork repository
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+## License
+
+MIT License

@@ -1,0 +1,117 @@
+[
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439011"
+    },
+    "title": "Hội thảo Công nghệ 2024",
+    "description": "Sự kiện công nghệ lớn nhất năm 2024 với nhiều diễn giả nổi tiếng trong lĩnh vực AI, Blockchain và Cloud Computing.",
+    "startDate": {
+      "$date": "2024-07-10T08:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-07-10T17:00:00.000Z"
+    },
+    "location": "Hội trường A, Đại học FPT",
+    "status": "active",
+    "category": "Công nghệ",
+    "createdBy": null,
+    "createdAt": {
+      "$date": "2024-01-15T10:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2024-01-15T10:00:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439012"
+    },
+    "title": "Ngày hội việc làm",
+    "description": "Cơ hội gặp gỡ các doanh nghiệp hàng đầu và tìm kiếm việc làm phù hợp với chuyên ngành.",
+    "startDate": {
+      "$date": "2024-08-15T08:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-08-15T16:00:00.000Z"
+    },
+    "location": "Sảnh chính, Đại học FPT",
+    "status": "active",
+    "category": "Việc làm",
+    "createdBy": null,
+    "createdAt": {
+      "$date": "2024-01-16T14:30:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2024-01-16T14:30:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439013"
+    },
+    "title": "Workshop Phát triển Web",
+    "description": "Học cách xây dựng website hiện đại với React, Node.js và MongoDB.",
+    "startDate": {
+      "$date": "2024-06-20T09:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-06-20T16:00:00.000Z"
+    },
+    "location": "Phòng Lab 2, Đại học FPT",
+    "status": "active",
+    "category": "Đào tạo",
+    "createdBy": null,
+    "createdAt": {
+      "$date": "2024-01-17T09:15:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2024-01-17T09:15:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439014"
+    },
+    "title": "Cuộc thi Hackathon",
+    "description": "Cuộc thi lập trình 24 giờ với chủ đề 'Giải pháp cho thành phố thông minh'.",
+    "startDate": {
+      "$date": "2024-09-05T08:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-09-06T08:00:00.000Z"
+    },
+    "location": "Trung tâm Công nghệ, Đại học FPT",
+    "status": "active",
+    "category": "Cuộc thi",
+    "createdBy": null,
+    "createdAt": {
+      "$date": "2024-01-18T11:45:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2024-01-18T11:45:00.000Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "507f1f77bcf86cd799439015"
+    },
+    "title": "Hội thảo Khởi nghiệp",
+    "description": "Chia sẻ kinh nghiệm khởi nghiệp từ các doanh nhân thành công.",
+    "startDate": {
+      "$date": "2024-10-12T13:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-10-12T17:00:00.000Z"
+    },
+    "location": "Hội trường B, Đại học FPT",
+    "status": "active",
+    "category": "Khởi nghiệp",
+    "createdBy": null,
+    "createdAt": {
+      "$date": "2024-01-19T16:20:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2024-01-19T16:20:00.000Z"
+    }
+  }
+] 
