@@ -1,16 +1,8 @@
-const bcrypt = require("bcryptjs");
-
-const mongoose = require("mongoose");
-
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const {
-  User,
-  Event,
-  Schedule
-} = require("./models");
+
 
 // Import routes
 const eventRoutes = require('./routes/events');

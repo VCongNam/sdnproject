@@ -30,11 +30,12 @@ router.get('/', async (req, res) => {
 router.get('/event/:eventId', async (req, res) => {
   try {
     const schedules = await Schedule.find({ eventId: req.params.eventId })
-      .populate('createdBy', 'username fullName')
+      .populate('eventId', 'title startDate endDate')
       .sort({ startTime: 1, order: 1 });
 
     res.json(schedules);
   } catch (error) {
+    console.error('Error fetching schedules by event:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -74,8 +75,7 @@ router.post('/', async (req, res) => {
       endTime,
       location,
       type,
-      order,
-      createdBy: req.user.id
+      order
     });
 
     const savedSchedule = await schedule.save();
@@ -84,6 +84,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(populatedSchedule);
   } catch (error) {
+    console.error('Error creating schedule:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

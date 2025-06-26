@@ -1,169 +1,224 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { Clock, MapPin, Edit, Trash2, Plus, Calendar } from 'lucide-react';
-import './ScheduleList.css';
+import {
+  Box,
+  Flex,
+  Heading,
+  Button,
+  Select,
+  VStack,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Badge,
+  Text,
+  Icon,
+  Skeleton,
+  SkeletonText,
+  useToast,
+  useColorModeValue
+} from '@chakra-ui/react';
+import { AtSignIcon, EditIcon, DeleteIcon, AddIcon, CalendarIcon } from '@chakra-ui/icons';
+
+const typeMap = {
+  session: { color: "blue", text: "Phiên thảo luận" },
+  break: { color: "yellow", text: "Nghỉ giải lao" },
+  workshop: { color: "green", text: "Hội thảo" },
+  presentation: { color: "purple", text: "Thuyết trình" },
+  other: { color: "gray", text: "Khác" },
+};
 
 const ScheduleList = ({ eventId, eventTitle, onEditSchedule, onAddSchedule }) => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('');
+  const toast = useToast();
+
+  const cardBg = useColorModeValue('white', 'gray.700');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
 
   useEffect(() => {
     if (eventId) {
       fetchSchedules();
     }
+    // eslint-disable-next-line
   }, [eventId]);
 
   const fetchSchedules = async () => {
+    setLoading(true);
     try {
       const params = {};
       if (typeFilter) params.type = typeFilter;
-      
       const response = await axios.get(`http://localhost:9999/api/schedules/event/${eventId}`, { params });
       setSchedules(response.data);
     } catch (error) {
       console.error('Error fetching schedules:', error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải danh sách lịch trình",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (scheduleId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa lịch trình này?')) {
+    if (window.confirm('Bạn có chắc chắn muốn xoá lịch trình này?')) {
       try {
         await axios.delete(`http://localhost:9999/api/schedules/${scheduleId}`);
+        toast({
+          title: "Thành công",
+          description: "Đã xoá lịch trình",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
         fetchSchedules();
       } catch (error) {
         console.error('Error deleting schedule:', error);
+        toast({
+          title: "Lỗi",
+          description: "Không thể xoá lịch trình",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       }
     }
   };
 
-  const getTypeColor = (type) => {
-    switch (type) {
-      case 'session': return 'type-session';
-      case 'break': return 'type-break';
-      case 'workshop': return 'type-workshop';
-      case 'presentation': return 'type-presentation';
-      case 'other': return 'type-other';
-      default: return '';
-    }
-  };
-
-  const getTypeText = (type) => {
-    switch (type) {
-      case 'session': return 'Phiên thảo luận';
-      case 'break': return 'Nghỉ giải lao';
-      case 'workshop': return 'Hội thảo';
-      case 'presentation': return 'Thuyết trình';
-      case 'other': return 'Khác';
-      default: return type;
-    }
-  };
-
-  const formatTime = (date) => {
-    return format(new Date(date), 'HH:mm');
-  };
-
-  const formatDate = (date) => {
-    return format(new Date(date), 'dd/MM/yyyy');
-  };
-
-  if (loading) {
-    return <div className="loading">Đang tải lịch trình...</div>;
-  }
+  const formatTime = (date) => format(new Date(date), 'HH:mm');
+  const formatDate = (date) => format(new Date(date), 'dd/MM/yyyy');
 
   return (
-    <div className="schedule-list">
-      <div className="schedule-list-header">
-        <div className="schedule-title">
-          <h2>Lịch trình sự kiện</h2>
-          {eventTitle && <p className="event-title">{eventTitle}</p>}
-        </div>
-        <button className="btn-add" onClick={onAddSchedule}>
-          <Plus size={16} />
-          Thêm lịch trình
-        </button>
-      </div>
-
-      <div className="schedule-filters">
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="type-filter"
+    <Box maxW="800px" mx="auto">
+      <Flex justify="space-between" align="start" mb={6}>
+        <Box>
+          <Heading size="lg">Lịch trình sự kiện</Heading>
+          {eventTitle && <Text color="gray.500" fontSize="sm" mt={1}>{eventTitle}</Text>}
+        </Box>
+        <Button
+          leftIcon={<AddIcon />}
+          colorScheme="blue"
+          onClick={onAddSchedule}
         >
-          <option value="">Tất cả loại</option>
-          <option value="session">Phiên thảo luận</option>
-          <option value="break">Nghỉ giải lao</option>
-          <option value="workshop">Hội thảo</option>
-          <option value="presentation">Thuyết trình</option>
-          <option value="other">Khác</option>
-        </select>
-        <button onClick={fetchSchedules} className="btn-refresh">
-          Làm mới
-        </button>
-      </div>
+          Thêm lịch trình
+        </Button>
+      </Flex>
 
-      <div className="schedule-timeline">
-        {schedules.length === 0 ? (
-          <div className="no-schedules">Chưa có lịch trình nào</div>
+      
+
+      <VStack spacing={4} align="stretch">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} bg={cardBg} border="1px" borderColor={borderColor}>
+              <CardHeader>
+                <Skeleton height="18px" width="50%" mb={2} />
+                <Skeleton height="14px" width="25%" />
+              </CardHeader>
+              <CardBody>
+                <SkeletonText noOfLines={2} spacing={2} />
+              </CardBody>
+              <CardFooter>
+                <Skeleton height="32px" width="60px" mr={2} />
+                <Skeleton height="32px" width="60px" />
+              </CardFooter>
+            </Card>
+          ))
+        ) : schedules.length === 0 ? (
+          <Box textAlign="center" py={10} color="gray.500">
+            Chưa có lịch trình nào
+          </Box>
         ) : (
-          schedules.map((schedule, index) => (
-            <div key={schedule._id} className="schedule-item">
-              <div className="schedule-time">
-                <div className="time-start">{formatTime(schedule.startTime)}</div>
-                <div className="time-end">{formatTime(schedule.endTime)}</div>
-              </div>
-              
-              <div className="schedule-content">
-                <div className="schedule-header">
-                  <h3 className="schedule-title">{schedule.title}</h3>
-                  <span className={`type-badge ${getTypeColor(schedule.type)}`}>
-                    {getTypeText(schedule.type)}
-                  </span>
-                </div>
-                
-                {schedule.description && (
-                  <p className="schedule-description">{schedule.description}</p>
-                )}
-                
-                <div className="schedule-details">
-                  {schedule.location && (
-                    <div className="schedule-detail">
-                      <MapPin size={14} />
-                      <span>{schedule.location}</span>
-                    </div>
+          schedules.map(schedule => (
+            <Card key={schedule._id} bg={cardBg} border="1px" borderColor={borderColor} _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }} transition="all 0.2s">
+              <Flex direction={{ base: 'column', md: 'row' }} align={{ base: 'stretch', md: 'center' }} gap={4}>
+                <CardHeader flexShrink={0} minW="120px">
+                  <Flex direction="column" align="center" gap={2}>
+                    <Box textAlign="center">
+                      <Text fontSize="lg" fontWeight="bold" fontFamily="mono">
+                        {formatTime(schedule.startTime)}
+                      </Text>
+                      <Text fontSize="xs" color="gray.400">
+                        {formatDate(schedule.startTime)}
+                      </Text>
+                    </Box>
+                    <Box textAlign="center">
+                      <Text fontSize="lg" fontWeight="bold" fontFamily="mono">
+                        {formatTime(schedule.endTime)}
+                      </Text>
+                      <Text fontSize="xs" color="gray.400">
+                        {formatDate(schedule.endTime)}
+                      </Text>
+                    </Box>
+                  </Flex>
+                </CardHeader>
+
+                <CardBody flex={1}>
+                  <Flex justify="space-between" align="start" mb={2}>
+                    <Heading size="md" noOfLines={1} flex={1} mr={2}>
+                      {schedule.title}
+                    </Heading>
+                    <Badge colorScheme={typeMap[schedule.type]?.color || "gray"}>
+                      {typeMap[schedule.type]?.text || schedule.type}
+                    </Badge>
+                  </Flex>
+                  
+                  {schedule.description && (
+                    <Text color="gray.600" noOfLines={2} mb={3} minH="32px">
+                      {schedule.description}
+                    </Text>
                   )}
                   
-                  <div className="schedule-detail">
-                    <Calendar size={14} />
-                    <span>{formatDate(schedule.startTime)}</span>
-                  </div>
-                </div>
+                  <Flex flexWrap="wrap" gap={2} color="gray.500" fontSize="sm">
+                    {schedule.location && (
+                      <Flex align="center" gap={1}>
+                        <Icon as={AtSignIcon} boxSize={3} />
+                        <Text>{schedule.location}</Text>
+                      </Flex>
+                    )}
+                    <Flex align="center" gap={1}>
+                      <Icon as={CalendarIcon} boxSize={3} />
+                      <Text>{formatDate(schedule.startTime)}</Text>
+                    </Flex>
+                  </Flex>
+                </CardBody>
 
-                <div className="schedule-actions">
-                  <button
-                    className="btn-edit"
-                    onClick={() => onEditSchedule(schedule)}
-                  >
-                    <Edit size={14} />
-                    Sửa
-                  </button>
-                  <button
-                    className="btn-delete"
-                    onClick={() => handleDelete(schedule._id)}
-                  >
-                    <Trash2 size={14} />
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </div>
+                <CardFooter flexShrink={0} minW="120px">
+                  <Flex gap={2} direction={{ base: 'row', md: 'column' }} w="full">
+                    <Button
+                      leftIcon={<EditIcon />}
+                      size="sm"
+                      colorScheme="blue"
+                      variant="outline"
+                      onClick={() => onEditSchedule(schedule)}
+                      flex={1}
+                    >
+                      Sửa
+                    </Button>
+                    <Button
+                      leftIcon={<DeleteIcon />}
+                      size="sm"
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={() => handleDelete(schedule._id)}
+                      flex={1}
+                    >
+                      Xoá
+                    </Button>
+                  </Flex>
+                </CardFooter>
+              </Flex>
+            </Card>
           ))
         )}
-      </div>
-    </div>
+      </VStack>
+    </Box>
   );
 };
 

@@ -1,9 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
-import { X, Save, Calendar, MapPin, Tag } from 'lucide-react';
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  Select,
+  VStack,
+  HStack,
+  Text,
+  useToast,
+  Box,
+  Icon
+} from '@chakra-ui/react';
+import { CalendarIcon, AtSignIcon, StarIcon } from '@chakra-ui/icons';
 import 'react-datepicker/dist/react-datepicker.css';
-import './EventForm.css';
+
+const statusOptions = [
+  { value: 'active', label: 'Đang diễn ra' },
+  { value: 'cancelled', label: 'Đã huỷ' },
+  { value: 'completed', label: 'Đã hoàn thành' },
+];
 
 const EventForm = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +42,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const toast = useToast();
 
   useEffect(() => {
     if (event) {
@@ -34,38 +60,18 @@ const EventForm = ({ event, onSave, onCancel }) => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = 'Tiêu đề là bắt buộc';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Mô tả là bắt buộc';
-    }
-
-    if (!formData.startDate) {
-      newErrors.startDate = 'Ngày bắt đầu là bắt buộc';
-    }
-
-    if (!formData.endDate) {
-      newErrors.endDate = 'Ngày kết thúc là bắt buộc';
-    }
-
-    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
-      newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
-    }
-
+    if (!formData.title.trim()) newErrors.title = 'Tiêu đề là bắt buộc';
+    if (!formData.description.trim()) newErrors.description = 'Mô tả là bắt buộc';
+    if (!formData.startDate) newErrors.startDate = 'Ngày bắt đầu là bắt buộc';
+    if (!formData.endDate) newErrors.endDate = 'Ngày kết thúc là bắt buộc';
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setLoading(true);
     try {
       const eventData = {
@@ -73,176 +79,170 @@ const EventForm = ({ event, onSave, onCancel }) => {
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString()
       };
-
       let response;
       if (event) {
-        // Update existing event
         response = await axios.put(`http://localhost:9999/api/events/${event._id}`, eventData);
       } else {
-        // Create new event
         response = await axios.post('http://localhost:9999/api/events', eventData);
       }
-
+      toast({
+        title: "Thành công",
+        description: event ? "Đã cập nhật sự kiện" : "Đã tạo sự kiện mới",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
       onSave(response.data);
     } catch (error) {
       console.error('Error saving event:', error);
-      alert('Có lỗi xảy ra khi lưu sự kiện');
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi lưu sự kiện",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+  };
+
+  const customDatePickerStyle = {
+    width: '100%',
+    padding: '8px 12px',
+    border: errors.startDate || errors.endDate ? '1px solid #E53E3E' : '1px solid #E2E8F0',
+    borderRadius: '6px',
+    fontSize: '14px'
   };
 
   return (
-    <div className="event-form-overlay">
-      <div className="event-form-modal">
-        <div className="event-form-header">
-          <h2>{event ? 'Sửa sự kiện' : 'Thêm sự kiện mới'}</h2>
-          <button className="btn-close" onClick={onCancel}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="event-form">
-          <div className="form-group">
-            <label htmlFor="title">Tiêu đề *</label>
-            <input
-              type="text"
-              id="title"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className={errors.title ? 'error' : ''}
-              placeholder="Nhập tiêu đề sự kiện"
-            />
-            {errors.title && <span className="error-message">{errors.title}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="description">Mô tả *</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className={errors.description ? 'error' : ''}
-              placeholder="Nhập mô tả sự kiện"
-              rows="3"
-            />
-            {errors.description && <span className="error-message">{errors.description}</span>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="startDate">Ngày bắt đầu *</label>
-              <div className="date-picker-wrapper">
-                <DatePicker
-                  selected={formData.startDate}
-                  onChange={(date) => handleInputChange('startDate', date)}
-                  showTimeSelect={false}
-                  dateFormat="dd/MM/yyyy"
-                  className={errors.startDate ? 'error' : ''}
-                  placeholderText="Chọn ngày bắt đầu"
+    <Modal isOpen={true} onClose={onCancel} size="lg">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{event ? 'Sửa sự kiện' : 'Thêm sự kiện mới'}</ModalHeader>
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
+            <VStack spacing={4}>
+              <FormControl isInvalid={!!errors.title}>
+                <FormLabel>Tiêu đề *</FormLabel>
+                <Input
+                  value={formData.title}
+                  onChange={e => handleInputChange('title', e.target.value)}
+                  placeholder="Nhập tiêu đề sự kiện"
+                  autoFocus
                 />
-                <Calendar size={16} className="date-icon" />
-              </div>
-              {errors.startDate && <span className="error-message">{errors.startDate}</span>}
-            </div>
+                {errors.title && <Text color="red.500" fontSize="sm" mt={1}>{errors.title}</Text>}
+              </FormControl>
 
-            <div className="form-group">
-              <label htmlFor="endDate">Ngày kết thúc *</label>
-              <div className="date-picker-wrapper">
-                <DatePicker
-                  selected={formData.endDate}
-                  onChange={(date) => handleInputChange('endDate', date)}
-                  showTimeSelect={false}
-                  dateFormat="dd/MM/yyyy"
-                  minDate={formData.startDate}
-                  className={errors.endDate ? 'error' : ''}
-                  placeholderText="Chọn ngày kết thúc"
+              <FormControl isInvalid={!!errors.description}>
+                <FormLabel>Mô tả *</FormLabel>
+                <Textarea
+                  value={formData.description}
+                  onChange={e => handleInputChange('description', e.target.value)}
+                  placeholder="Nhập mô tả sự kiện"
+                  rows={3}
                 />
-                <Calendar size={16} className="date-icon" />
-              </div>
-              {errors.endDate && <span className="error-message">{errors.endDate}</span>}
-            </div>
-          </div>
+                {errors.description && <Text color="red.500" fontSize="sm" mt={1}>{errors.description}</Text>}
+              </FormControl>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="location">Địa điểm</label>
-              <div className="input-with-icon">
-                <input
-                  type="text"
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Nhập địa điểm"
-                />
-                <MapPin size={16} className="input-icon" />
-              </div>
-            </div>
+              <HStack spacing={4} w="full">
+                <FormControl isInvalid={!!errors.startDate}>
+                  <FormLabel>Ngày bắt đầu *</FormLabel>
+                  <Box position="relative">
+                    <DatePicker
+                      selected={formData.startDate}
+                      onChange={date => handleInputChange('startDate', date)}
+                      showTimeSelect={false}
+                      dateFormat="dd/MM/yyyy"
+                      style={customDatePickerStyle}
+                      placeholderText="Chọn ngày bắt đầu"
+                    />
+                    <Icon as={CalendarIcon} position="absolute" right={3} top="50%" transform="translateY(-50%)" color="gray.400" />
+                  </Box>
+                  {errors.startDate && <Text color="red.500" fontSize="sm" mt={1}>{errors.startDate}</Text>}
+                </FormControl>
 
-            <div className="form-group">
-              <label htmlFor="category">Danh mục</label>
-              <div className="input-with-icon">
-                <input
-                  type="text"
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  placeholder="Nhập danh mục"
-                />
-                <Tag size={16} className="input-icon" />
-              </div>
-            </div>
-          </div>
+                <FormControl isInvalid={!!errors.endDate}>
+                  <FormLabel>Ngày kết thúc *</FormLabel>
+                  <Box position="relative">
+                    <DatePicker
+                      selected={formData.endDate}
+                      onChange={date => handleInputChange('endDate', date)}
+                      showTimeSelect={false}
+                      dateFormat="dd/MM/yyyy"
+                      minDate={formData.startDate}
+                      style={customDatePickerStyle}
+                      placeholderText="Chọn ngày kết thúc"
+                    />
+                    <Icon as={CalendarIcon} position="absolute" right={3} top="50%" transform="translateY(-50%)" color="gray.400" />
+                  </Box>
+                  {errors.endDate && <Text color="red.500" fontSize="sm" mt={1}>{errors.endDate}</Text>}
+                </FormControl>
+              </HStack>
 
-          <div className="form-group">
-            <label htmlFor="status">Trạng thái</label>
-            <select
-              id="status"
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-            >
-              <option value="active">Đang diễn ra</option>
-              <option value="cancelled">Đã hủy</option>
-              <option value="completed">Đã hoàn thành</option>
-            </select>
-          </div>
+              <HStack spacing={4} w="full">
+                <FormControl>
+                  <FormLabel>Địa điểm</FormLabel>
+                  <Box position="relative">
+                    <Input
+                      value={formData.location}
+                      onChange={e => handleInputChange('location', e.target.value)}
+                      placeholder="Nhập địa điểm"
+                      pr={10}
+                    />
+                    <Icon as={AtSignIcon} position="absolute" right={3} top="50%" transform="translateY(-50%)" color="gray.400" />
+                  </Box>
+                </FormControl>
 
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn-cancel"
-              onClick={onCancel}
-              disabled={loading}
-            >
-              Hủy
-            </button>
-            <button
+                <FormControl>
+                  <FormLabel>Danh mục</FormLabel>
+                  <Box position="relative">
+                    <Input
+                      value={formData.category}
+                      onChange={e => handleInputChange('category', e.target.value)}
+                      placeholder="Nhập danh mục"
+                      pr={10}
+                    />
+                    <Icon as={StarIcon} position="absolute" right={3} top="50%" transform="translateY(-50%)" color="gray.400" />
+                  </Box>
+                </FormControl>
+              </HStack>
+
+              <FormControl>
+                <FormLabel>Trạng thái</FormLabel>
+                <Select
+                  value={formData.status}
+                  onChange={e => handleInputChange('status', e.target.value)}
+                >
+                  {statusOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </Select>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="outline" mr={3} onClick={onCancel} disabled={loading}>
+              Huỷ
+            </Button>
+            <Button
+              colorScheme="blue"
               type="submit"
-              className="btn-save"
-              disabled={loading}
+              isLoading={loading}
+              loadingText={event ? 'Đang cập nhật...' : 'Đang tạo...'}
             >
-              <Save size={16} />
-              {loading ? 'Đang lưu...' : (event ? 'Cập nhật' : 'Tạo sự kiện')}
-            </button>
-          </div>
+              {event ? 'Cập nhật' : 'Tạo sự kiện'}
+            </Button>
+          </ModalFooter>
         </form>
-      </div>
-    </div>
+      </ModalContent>
+    </Modal>
   );
 };
 

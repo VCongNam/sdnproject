@@ -21,9 +21,10 @@ router.get('/', async (req, res) => {
       if (startDate) filter.startDate.$gte = new Date(startDate);
       if (endDate) filter.startDate.$lte = new Date(endDate);
     }
-
+    console.log('API GET /events - Filter:', filter);
     const events = await Event.find(filter)
       .sort({ startDate: 1 });
+    console.log('API GET /events - Found events:', events);
 
     res.json(events);
   } catch (error) {
